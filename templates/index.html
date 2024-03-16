@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eldritch Descent</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <script defer src="{{ url_for('static', filename='js/alpinejs/cdn.min.js') }}"></script>
+    <!-- Fog Scripts -->
+    <script src="{{ url_for('static', filename='js/vantajs/three.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/vantajs/vanta.fog.min.js') }}"></script>
+    <style>
+        @font-face {
+            font-family: 'custom';
+            src: url("{{ url_for('static', filename='fonts/font1.otf') }}");
+        }
+        h1,h2,h3,h4,h5,h6,p, .custom-font {
+            font-family: 'custom';
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container" class="w-full h-screen m-auto grid bg-black relative text-white" x-data="gameState">
+        <!-- backing fog -->
+        <div id="fog" class="w-full h-screen absolute top-0 left-0"></div>
+        <!-- !backing fog -->
+
+        <!--         -->
+        <!-- SCREENS -->
+        <!--         -->
+        <!-- LoadingScreen -->
+        <div 
+            class="screen" 
+            x-data="screenLoading" 
+            x-bind:class="currentScreen == 'loading' ? 'opacity-100' : 'opacity-0'"
+        >
+            <div class="m-auto flex flex-col">
+                <h6 class="text-white text-center text-4xl">
+                    Loading
+                </h6>
+                <span x-text="dots" class="text-center text-4xl"></span>
+            </div>
+        </div>
+        <!-- !LoadingScreen -->
+
+        <!-- TitleScreen -->
+        <div 
+            class="screen" 
+            x-data="screenTitle" 
+            x-bind:class="currentScreen == 'title' ? 'opacity-100' : 'opacity-0'"
+        >
+            <div class="m-auto flex flex-col gap-12">
+                <h6 class="text-red-600 text-center text-6xl md:text-8xl lg:text-9xl text-shadow">
+                    Eldritch<br>Descent
+                </h6>
+                <div class="flex flex-col gap-4 md:gap-6">
+                    <button class="custom-font m-auto text-3xl md:text-4xl text-white opacity-75 lg:hover:opacity-100 lg:hover:scale-105 lg:hover:text-red-600 hover-text-shadow transition ease-in-out duration-200">
+                        Start
+                    </button>
+                    <button x-on:click="$refs.modalHowToPlay.showModal()" class="custom-font m-auto text-3xl md:text-4xl text-white opacity-75 lg:hover:opacity-100 lg:hover:scale-105 lg:hover:text-red-600 hover-text-shadow transition ease-in-out duration-200">
+                        How To Play
+                    </button>
+                    <button x-on:click="$refs.modalCredits.showModal()" class="custom-font m-auto text-3xl md:text-4xl text-white opacity-75 lg:hover:opacity-100 lg:hover:scale-105 lg:hover:text-red-600 hover-text-shadow transition ease-in-out duration-200">
+                        Credits
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- !Title Screen -->
+
+        <!--        -->
+        <!-- MODALS -->
+        <!--        -->
+        <!-- How to play modal -->
+        <dialog class="w-11/12 max-w-screen-md rounded-lg bg-zinc-900" x-ref="modalHowToPlay">
+            <div class="flex text-white">
+                <div class="flex flex-col px-8 py-6 w-full h-full gap-2 md:gap-3">
+                    <div class="flex flex-row justify-between w-full">
+                        <h4 class="bold text-2xl md:text-4xl text-red-600">How To Play</h4>
+                        <button x-on:click="$refs.modalHowToPlay.close()" class="opacity-50 lg:hover:opacity-100">
+                            <span class="custom-font bold text-2xl md:text-4xl opacity-50 lg:hover:opacity-100 transition ease-in-out duration-100">
+                                X
+                            </span>
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="min-h-[50hv] h-[10000px] max-h-[75vh] md:max-h-[55vh]">
+                        <div class="flex flex-col gap-4">
+                            <p class="text-base md:text-2xl">
+                                The Inverted Tower of Ak'lodri pierces deep into the core of the rotten planet of Thaebia and stands as an unknown beacon of fear, obscured by myth and discovered only by sheer tenacity. The Route Of All Evil has lead you here; for justice or expansion is irrelevant. All that matters is the Eldrith Descent.
+                            </p>
+                            <p class="text-base md:text-2xl">
+                                Select your route by clicking on the path that you would like to take. Choose wisely depending on what you need and what you can handle. From there, collect items, fight unspeakable horrors, or interact with the world with intelect and cunning character.
+                            </p>
+                            <p class="text-base md:text-2xl">
+                                After traversing the floor, descend to the next level down where worse fates await. Once you reach the bottom, the final evil will present itself. Will you have the strength to be able to destroy it?
+                            </p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="w-full flex flex-row justify-between m-auto">
+                        <div></div>
+                        <button x-on:click="$refs.modalHowToPlay.close()" class="">Close</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+        <!-- !How to play modal -->
+
+        <!-- Credits modal -->
+        <dialog class="w-11/12 max-w-screen-md rounded-lg bg-zinc-900" x-ref="modalCredits">
+            <div class="flex text-white">
+                <div class="flex flex-col px-8 py-6 w-full h-full gap-4">
+                    <div class="flex flex-row justify-between w-full">
+                        <h4 class="bold text-2xl md:text-4xl text-red-600">Credits</h4>
+                        <button x-on:click="$refs.modalCredits.close()" class="opacity-50 lg:hover:opacity-100">
+                            <span class="custom-font bold text-2xl md:text-4xl opacity-50 lg:hover:opacity-100 transition ease-in-out duration-100">
+                                X
+                            </span>
+                        </button>
+                    </div>
+                    <hr>
+                    <div class="min-h-[50hv] h-[10000px] max-h-[60vh] relative">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex w-full justify-between">
+                                <p class="text-base md:text-2xl">Programming</p>
+                                <p class="text-base md:text-2xl">Tyler Johnson</p>
+                            </div>
+                            <div class="flex w-full justify-between">
+                                <p class="text-base md:text-2xl">Music</p>
+                                <p class="text-base md:text-2xl">Tyler Johnson</p>
+                            </div>
+                            <div class="flex w-full justify-between">
+                                <p class="text-base md:text-2xl">Artwork</p>
+                                <p class="text-base md:text-2xl">Stable Diffusion</p>
+                            </div>
+                        </div>
+                        <div class="absolute bottom-0">
+                            <p class="text-base md:text-2xl">Special thanks to the UNC Charlotte Game Developers club and its officers, and all participants and observers of the 49er Game Jam every semester.</p>
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="w-full flex flex-row justify-between m-auto">
+                        <div></div>
+                        <button x-on:click="$refs.modalCredits.close()" class="">Close</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
+        <!-- Data Divs -->
+        <div x-data="armor"></div>
+        <div x-data="curses"></div>
+        <div x-data="enemies"></div>
+        <div x-data="events"></div>
+        <div x-data="potions"></div>
+        <div x-data="weapons"></div>
+
+        <!-- Data Scripts -->
+        <script src="{{ url_for('static', filename='js/game/gameState.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/armor.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/curses.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/enemies.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/events.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/potions.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/weapons.js') }}"></script>
+
+        <!-- Screen Scripts -->
+        <script src="{{ url_for('static', filename='js/game/screens/screenLoading.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenTitle.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenRoute.js') }}"></script>
+
+        <!-- Fog Script -->
+        <script>
+            VANTA.FOG({
+              el: "#fog",
+              mouseControls: true,
+              touchControls: true,
+              gyroControls: false,
+              minHeight: 200.00,
+              minWidth: 200.00,
+              highlightColor: 0x464646,
+              midtoneColor: 0x404040,
+              lowlightColor: 0x0,
+              baseColor: 0x0,
+              blurFactor: 0.65,
+              speed: 0.85
+            })
+        </script>
+    </div>
+</body>
+
+</html>
