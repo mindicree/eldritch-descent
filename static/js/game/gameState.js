@@ -27,8 +27,10 @@ document.addEventListener('alpine:init', () => {
         hideTextBox: false,
         showCombatButtons: false,
         roundCounter: 0,
+        toastMessage: null,
+        history: [],
         init() {
-            this.previousData = localStorage.getItem('ed_save') || this.getDefaultSave()
+            this.previousData = JSON.parse(localStorage.getItem('ed_save')) || this.getDefaultSave()
             setTimeout(() => {
                 this.currentScreen = 'title'
             }, 1000);
@@ -40,6 +42,9 @@ document.addEventListener('alpine:init', () => {
                 currentOptions: [],
                 previousPlayers: [],
             }
+        },
+        saveGame() {
+            localStorage.setItem('ed_save', JSON.stringify(this.saveData))
         },
         startGame() {
             this.gameStarted = true;
@@ -63,7 +68,7 @@ document.addEventListener('alpine:init', () => {
             }
             setTimeout(() => { 
                 if (then) {
-                    then()
+                    then(this.player)
                 }
             }, 20 * this.textboxFullText.length + 100)
         },
@@ -93,7 +98,9 @@ document.addEventListener('alpine:init', () => {
                     armor: [
                         getRandomArmor()
                     ],
-                    potions: [],
+                    potions: [
+                        getRandomPotion()
+                    ],
                 }
             }
             return player
@@ -115,6 +122,7 @@ document.addEventListener('alpine:init', () => {
             this.player.stats.currentHP = Math.min(this.player.stats.currentHP + (Math.floor(Math.random() * 5 + 1)), this.player.stats.maxHP)
             this.runEvent('create-routes')
             this.currentScreen = 'routes'
+            this.disableInteractions = false
         },
         async startCombat() {
             this.currentEnemy = getRandomEnemy();
@@ -180,7 +188,7 @@ document.addEventListener('alpine:init', () => {
                 if (Math.random() * 100 - (this.player.stats.luck/2) < this.currentEnemy.chanceToRun) {
                     printToTextBox('You managed to escape!')
                     await this.sleep(2000)
-                    return completeCombatByRun()
+                    return this.completeCombatByRun()
                 } else {
                     printToTextBox("Couldn't get away!")
                     await this.sleep(1500)
@@ -283,13 +291,94 @@ document.addEventListener('alpine:init', () => {
             this.startNextRound()
         },
         completeCombatByRun() {
-
+            this.startNextRound()
         },
-        completeCombatByLoss() {
-
+        async completeCombatByLoss() {
+            printToTextBox('You died....................................................')
+            await this.sleep(1500)
+            this.currentScreen = 'lose'
         },
         getStatBoost() {
-            return Math.max(Math.round(Math.random() * 2 - 0.25), 0)
+            return Math.random() < 0.5 ? Math.round(Math.random() * 2 - 0.25) : 0
+        },
+        nextLevel() {
+            this.currentScreen = 'level'
+            this.hideTextBox = true
+            this.currentLevel++;
+            printToTextBox('Descend the tower further, the ultimate evil awaits...')
+            setTimeout(() => {
+                this.startNextRound()
+                this.hideTextBox = false;
+            }, 3000) 
+        },
+        async addTreasure() {
+            switch(Math.floor(Math.random() * 10)) {
+                case 0:
+                    let newWeapon = getRandomWeapon()
+                    this.player.inventory.weapons.push(newWeapon)
+                    printToTextBox(`You found a ${newWeapon.name}. It will guide you through the tower.`)
+                    break;
+                case 1:
+                    let newArmor = getRandomArmor()
+                    this.player.inventory.armor.push(newArmor)
+                    printToTextBox(`You found ${newArmor.name} armor. It will protect you with its life.`)
+                    break;
+                case 2:
+                    let newPotion = getRandomPotion()
+                    this.player.inventory.potions.push(newPotion)
+                    printToTextBox(`You found a ${newPotion.name}. It will sustain you on your journey.`)
+                    break;
+                default:
+                    let goldCount = Math.floor(Math.random() * 100  * (this.currentLevel / 3) + 10)
+                    this.player.gold += goldCount;
+                    printToTextBox(`You found ${goldCount} gold. It is worth nothing on this journey, but it will accompany our trophy nicely.`)
+            } 
+            this.showContinueButton = true;
+            await this.sleep(1000)
+        },
+        async fireToast(text) {
+            this.toastMessage = text
+            await this.sleep(5000)
+            this.toastMessage = null;
+        },
+        usePotion(effect) {
+            console.log('Made it to gameState.usePotion function')
+            effect(this.player)
+        },
+        restartWholeGame() {
+            this.saveData.previousPlayers.push(JSON.stringify(this.player))
+            this.saveGame()
+            this.gameStarted = false
+            this.player = null
+            this.currentScreen = 'title'
+            this.disableInteractions = false
+        },
+        removePotionFromInventory(id) {
+            const objWithIdIndex = this.player.inventory.potions.findIndex((obj) => obj.id === id);
+            this.player.inventory.potions.splice(objWithIdIndex, 1);
+        },
+        createOrb() {
+            this.showContinueButton = true;
+            
+            let statBoosts = {
+                hp: this.getStatBoost() + 1,
+                str: this.getStatBoost() + 1,
+                dex: this.getStatBoost() + 1,
+                con: this.getStatBoost() + 1,
+                int: this.getStatBoost() + 1,
+                wis: this.getStatBoost() + 1,
+                cha: this.getStatBoost() + 1,
+            }
+
+            this.player.stats.maxHP += statBoosts.hp
+            this.player.stats.strength += statBoosts.str
+            this.player.stats.dexterity += statBoosts.dex
+            this.player.stats.constitution += statBoosts.con
+            this.player.stats.intelligence += statBoosts.int
+            this.player.stats.wisdom += statBoosts.wis
+            this.player.stats.charisma += statBoosts.cha
+
+            printToTextBox('The route of all evil is not one of a single mind\'s progress; it  is the culmination of many generations bestowing the corrections to the world itself. These will surely carry over now. (All of your stats are raised)')
         }
     }))
 })

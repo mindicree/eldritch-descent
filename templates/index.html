@@ -25,6 +25,11 @@
         x-on:textbox.window="printText($event.detail.text, $event.detail.after)"
         x-on:next-round.window="startNextRound()"
         x-on:create-combat.window="startCombat()"
+        x-on:level-descend.window="nextLevel()"
+        x-on:fire-toast.window="fireToast($event.detail.text)"
+        x-on:use-potion.window="$event.detail.effect(player)"
+        x-on:remove-potion.window="removePotionFromInventory($event.detail.id)"
+        x-on:create-orb.window="createOrb()"
     >
         <!-- backing fog -->
         <div x-data x-init="$el.classList.remove('opacity-0')" id="forest" class="opacity-0 transition ease-in-out duration-[5000ms] w-full h-screen absolute top-0 left-0 bg-center bg-cover" style="background-image: url('{{ url_for('static', filename='img/forest.jpg') }}');"></div>
@@ -37,7 +42,7 @@
             <span class="absolute custom-font text-2xl right-10 bottom-10" x-text="`Rebirths: ${saveData.previousPlayers.length}`"></span>
         </div>
         <!-- Levels and Buttons -->
-        <div class="w-full h-screen relative" x-bind:class="currentScreen != 'intro' && gameStarted ? 'flex' : 'hidden'">
+        <div class="w-full h-screen relative" x-bind:class="currentScreen != 'intro' && gameStarted && currentScreen != 'level' && currentScreen != 'lose' ? 'flex' : 'hidden'">
             <div class="w-11/12 max-w-screen-lg m-auto h-screen relative flex">
                 <span class="custom-font absolute top-10 left-0 text-xl md:text-3xl lg:text-4xl transition ease-in-out duration-100" x-bind:class="currentScreen == 'combat' ? 'opacity-0' : 'opacity-100'" x-text="`Level: -${currentLevel}`"></span>
 
@@ -52,13 +57,13 @@
                                 <img class="m-auto w-full" src="/static/img/icons/armor.png">
                             </button>
                             <!-- Inventory -->
-                            <button class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
+                            <button x-on:click="$refs.modalInventory.showModal()" class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
                                 <img class="m-auto w-full" src="/static/img/icons/inventory.png">
                             </button>
                             <!-- History -->
-                            <button class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
+                            <!-- <button class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
                                 <img class="m-auto w-full" src="/static/img/icons/history.png">
-                            </button>
+                            </button> -->
                         </div>
                         <div class="my-auto">
                             <button
@@ -72,13 +77,14 @@
             </div>
         </div>
         <!-- Textbox -->
-        <div id="textbox" class="absolute w-full bottom-24 flex"  x-bind:class="currentScreen != 'intro' && currentScreen != 'routes' && gameStarted && !hideTextBox ? 'opacity-100' : 'opacity-0'">
+        <div id="textbox" class="absolute w-full bottom-24 flex"  x-bind:class="currentScreen != 'intro' && currentScreen != 'routes' && currentScreen != 'lose' && gameStarted && !hideTextBox ? 'opacity-100' : 'opacity-0'">
             <div class="m-auto h-[25vh] w-11/12 max-w-screen-md rounded bg-gray-600 p-2 flex">
                 <div class="w-full h-full bg-black flex p-2">
                     <p class="text-lg md:text-2xl 2xl:text-3xl" x-text="textboxDisplayText"></p>
                 </div>
             </div>
         </div>
+        
 
         <!--         -->
         <!-- SCREENS -->
@@ -195,6 +201,43 @@
         </div>
         <!-- !Event Scene -->
 
+        <!-- Treasure Scene -->
+        <div
+            class="scene"
+            x-data="screenTreasure"
+            x-bind:class="currentScreen == 'treasure' ? 'scene-active' : 'scene-inactive'"
+            x-on:create-treasure.window="addTreasure()"
+        >
+            <div class="w-11/12 mx-auto h-screen flex flex-col gap-8">
+                <div class="flex flex-col mx-auto gap-6 mt-10 md:mt-20 lg:mt-10">
+                    <img src="/static/img/routes/treasure.jpg" class="w-11/12 max-w-[200px] md:max-w-[250px] 2xl:max-w-[400px] m-auto rounded">
+                    <h4 class="text-white text-2xl md:text-3xl 2xl:text-6xl m-auto">Forgotten Treasure</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2 md:gap-4 mx-auto w-full max-w-screen-md z-50">
+                </div>
+            </div>
+        </div>
+        <!-- !treasure Scene -->
+
+        <!-- Treasure Scene -->
+        <div
+            class="scene"
+            x-data="screenOrb"
+            x-bind:class="currentScreen == 'orb' ? 'scene-active' : 'scene-inactive'"
+            x-on:create-treasure.window="addTreasure()"
+        >
+            <div class="w-11/12 mx-auto h-screen flex flex-col gap-8">
+                <div class="flex flex-col mx-auto gap-6 mt-10 md:mt-20 lg:mt-10">
+                    <img src="/static/img/routes/orb.jpg" class="w-11/12 max-w-[200px] md:max-w-[250px] 2xl:max-w-[400px] m-auto rounded">
+                    <h4 class="text-white text-2xl md:text-3xl 2xl:text-6xl m-auto">Orb of Ancestors</h4>
+                </div>
+                <div class="grid grid-cols-2 gap-2 md:gap-4 mx-auto w-full max-w-screen-md z-50">
+                    
+                </div>
+            </div>
+        </div>
+        <!-- !treasure Scene -->
+
         <!-- Combat Scene -->
         <div
             class="scene"
@@ -238,6 +281,41 @@
             </template>
         </div>
         <!-- !Combat Scene -->
+
+        <!-- Descent Scene -->
+        <div
+            class="scene"
+            x-data="screenLevel"
+            x-bind:class="currentScreen == 'level' ? 'scene-active' : 'scene-inactive'"
+        >
+            <div class="w-11/12 mx-auto h-screen flex flex-col gap-8 relative">
+                <h1 x-html="`Welcome To<br>Level -${currentLevel}`" class="m-auto text-white text-6xl text-center"></h1>
+            </div>
+        </div>
+        <!-- !Descent Scene -->
+
+        <!-- Lose Scene -->
+        <div
+            class="scene"
+            x-data="screenLose"
+            x-bind:class="currentScreen == 'lose' ? 'scene-active' : 'scene-inactive'"
+        >
+            <template x-if="player">
+                <div class="w-11/12 mx-auto h-screen flex flex-col gap-8 relative">
+                    <div class="flex flex-col gap-4 m-auto relative max-w-screen-sm">
+                        <h1 x-html="`Game Over`" class="m-auto text-white text-7xl text-center"></h1>
+                        <div class="flex w-full justify-between mx-auto">
+                            <h3 class="my-auto text-center text-4xl md:text-6xl" x-text="`Level: -${currentLevel}`"></h3>
+                            <h3 class="my-auto text-center text-4xl md:text-6xl" x-text="`Gold: ${player.gold}`"></h3>
+                        </div>
+                        <p class="m-auto py-12 text-center text-2xl">The point of death is not to lie as corpsus resting eternally, but to set an example for every living man thereafter. The Route Of All Evil has no end, and The Root Of All Evil is forever omniscient.</p>
+                        <button x-on:click="restartWholeGame()" class=" text-4xl transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600 w-full m-auto p-2">Restart</button>
+                    </div>
+                    </div>
+                    
+            </template>
+        </div>
+        <!-- !Lose Scene -->
 
         <!--        -->
         <!-- MODALS -->
@@ -389,6 +467,64 @@
                 </div>
             </dialog>
         </template>
+
+        <!-- Inventory Modal -->
+        <dialog class="w-11/12 max-w-screen-md rounded-lg bg-zinc-900" x-ref="modalInventory">
+            <template x-if="player">
+                <div class="flex text-white">
+                    <div class="flex flex-col px-8 py-6 w-full h-full gap-2 md:gap-3">
+                        <div class="flex flex-row justify-between w-full">
+                            <h4 class="bold text-2xl md:text-4xl text-red-600">Inventory</h4>
+                            <button x-on:click="$refs.modalInventory.close()" class="opacity-50 lg:hover:opacity-100">
+                                <span class="custom-font bold text-2xl md:text-4xl opacity-50 lg:hover:opacity-100 transition ease-in-out duration-100">
+                                    X
+                                </span>
+                            </button>
+                        </div>
+                        <hr>
+                            <div class="min-h-[50hv] h-[10000px] max-h-[75vh] md:max-h-[55vh] overflow-y-scroll">
+                                <h3 class="text-2xl font-bold w-11/12 mx-auto">Weapons</h3>
+                                <div class="flex flex-col gap-2 w-11/12 mx-auto py-2">
+                                    <template x-for="(weapon, index) in player.inventory.weapons">
+                                        <div class="flex justify-between text-xl">
+                                            <p x-text="weapon.name"></p>
+                                            <button x-on:click="player.weapon = index" x-show="player.weapon != index" class="transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600">Equip</button>
+                                            <p x-on:click="player.weapon = index" x-show="player.weapon == index" class="text-white"><i>Equipped</i></p>
+                                        </div>
+                                    </template>
+                                </div>
+                                <hr class="w-1/2 mx-auto my-4">
+                                <h3 class="text-2xl font-bold w-11/12 mx-auto">Armor</h3>
+                                <div class="flex flex-col gap-2 w-11/12 mx-auto py-2">
+                                    <template x-for="(armor, index) in player.inventory.armor">
+                                        <div class="flex justify-between text-xl">
+                                            <p x-text="armor.name"></p>
+                                            <button x-on:click="player.armor = index" x-show="player.armor != index" class="transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600 px-4 py-2">Equip</button>
+                                            <p x-on:click="player.armor = index" x-show="player.armor == index" class="text-white"><i>Equipped</i></p>
+                                        </div>
+                                    </template>
+                                </div>
+                                <hr class="w-1/2 mx-auto my-4">
+                                <h3 class="text-2xl font-bold w-11/12 mx-auto">Potions</h3>
+                                <div class="flex flex-col gap-2 w-11/12 mx-auto py-2">
+                                    <template x-for="(potion, index) in player.inventory.potions">
+                                        <div class="flex justify-between text-xl">
+                                            <p x-text="potion.name"></p>
+                                            <button x-on:click="potion.click" class="transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600 px-4 py-2">Quaff</button>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+                        <hr>
+                        <div class="w-full flex flex-row justify-between m-auto">
+                            <span class="custom-font text-white text-xl" x-text="`Gold: ${player.gold || 0}`"></span>
+                            <button x-on:click="$refs.modalInventory.close()" class="custom-font text-2xl text-white opacity-75 lg:hover:opacity-100 lg:hover:scale-105 lg:hover:text-red-600 hover-text-shadow transition ease-in-out duration-200">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </dialog>
+        <!-- !Inventory Modal -->
         
 
         <!-- Data Scripts -->
@@ -407,6 +543,10 @@
         <script src="{{ url_for('static', filename='js/game/screens/screenRoutes.js') }}"></script>
         <script src="{{ url_for('static', filename='js/game/screens/screenEvent.js') }}"></script>
         <script src="{{ url_for('static', filename='js/game/screens/screenCombat.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenLevel.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenTreasure.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenOrb.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenLose.js') }}"></script>
 
         <!-- Fog Script -->
         <script>

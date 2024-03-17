@@ -31,7 +31,7 @@ function getRarity() {
 function calculateAttackDamage(weapon, strength) {
     let dice = weapon.damage.split('d')
     let base_damage = 0;
-    let critical = Math.random() < 0.1
+    let critical = Math.random() < 0.05
     for(let i = 0; i < dice[0] * (critical ? 2 : 1); i++) {
         base_damage += Math.max(Math.round(Math.random() * dice[1]), 1)
     }
@@ -46,7 +46,7 @@ function calculateAttackDamage(weapon, strength) {
         }
     }
 
-    let strength_damage = Math.floor(strength / 2)
+    let strength_damage = Math.floor(strength / 4)
 
     return {
         base_damage: base_damage,
