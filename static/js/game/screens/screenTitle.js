@@ -4,9 +4,5 @@ document.addEventListener('alpine:init', () => {
         init() {
             this.$el.style.display = "grid";
         },
-
-        toggleView() {
-            this.showing = !this.showing;
-        }
     }))
 })
