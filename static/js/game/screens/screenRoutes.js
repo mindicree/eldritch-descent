@@ -31,9 +31,9 @@ document.addEventListener('alpine:init', () => {
                 image: "https://htmlcolorcodes.com/assets/images/colors/red-color-solid-background-1920x1080.png",
                 sceneTo: "combat",
                 dispatch: "create-combat",
-                chance: 10,
+                chance: 50,
                 action: () => {
-
+                    
                 }
             },
             {
@@ -41,7 +41,7 @@ document.addEventListener('alpine:init', () => {
                 image: "https://live-production.wcms.abc-cdn.net.au/7eb03b8ab2c76e6ee3c40519fedffa23?impolicy=wcms_crop_resize&cropH=288&cropW=512&xPos=0&yPos=0&width=862&height=485",
                 sceneTo: "event",
                 dispatch: "create-event",
-                chance: 30,
+                chance: 10,
                 action: () => {
 
                 }

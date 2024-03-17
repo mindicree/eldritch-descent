@@ -22,7 +22,9 @@
 <body>
     <div id="main-container" class="w-full h-screen m-auto grid relative bg-black text-white overflow-hidden" 
         x-data="gameState"
-        x-on:textbox.window="printText($event.detail)"
+        x-on:textbox.window="printText($event.detail.text, $event.detail.after)"
+        x-on:next-round.window="startNextRound()"
+        x-on:create-combat.window="startCombat()"
     >
         <!-- backing fog -->
         <div x-data x-init="$el.classList.remove('opacity-0')" id="forest" class="opacity-0 transition ease-in-out duration-[5000ms] w-full h-screen absolute top-0 left-0 bg-center bg-cover" style="background-image: url('{{ url_for('static', filename='img/forest.jpg') }}');"></div>
@@ -37,25 +39,43 @@
         <!-- Levels and Buttons -->
         <div class="w-full h-screen relative" x-bind:class="currentScreen != 'intro' && gameStarted ? 'flex' : 'hidden'">
             <div class="w-11/12 max-w-screen-lg m-auto h-screen relative flex">
-                <span class="custom-font absolute top-10 left-0 text-xl md:text-3xl lg:text-4xl" x-text="`Level: -${currentLevel}`"></span>
+                <span class="custom-font absolute top-10 left-0 text-xl md:text-3xl lg:text-4xl transition ease-in-out duration-100" x-bind:class="currentScreen == 'combat' ? 'opacity-0' : 'opacity-100'" x-text="`Level: -${currentLevel}`"></span>
 
-                <div id="game-button-container" class="absolute w-full flex gap-8 bottom-10 z-10">
-                    <div class="flex gap-8 m-auto">
-                        <!-- Character -->
-                        <button class="w-6 h-6 bg-white m-auto rounded-full"></button>
-                        <!-- Inventory -->
-                        <button class="w-6 h-6 bg-white m-auto rounded-full"></button>
-                        <!-- History -->
-                        <button class="w-6 h-6 bg-white m-auto rounded-full"></button>
+                <div id="game-button-container" class="absolute w-full flex justify-between gap-8 bottom-10 z-50">
+                    <div class="flex justify-between w-full m-auto max-w-screen-md">
+                        <div class="my-auto">
+                            <button class="opacity-0" disabled>Continue</button>
+                        </div>
+                        <div class="flex gap-4 md:gap-8 m-auto">
+                            <!-- Character -->
+                            <button x-on:click="$refs.modalPlayer.showModal()" class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
+                                <img class="m-auto w-full" src="/static/img/icons/armor.png">
+                            </button>
+                            <!-- Inventory -->
+                            <button class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
+                                <img class="m-auto w-full" src="/static/img/icons/inventory.png">
+                            </button>
+                            <!-- History -->
+                            <button class="w-10 h-10 p-2 bg-gray-600 m-auto rounded-full flex lg:hover:scale-105 lg:hover:bg-red-600 transition duration-100 ease-in-out">
+                                <img class="m-auto w-full" src="/static/img/icons/history.png">
+                            </button>
+                        </div>
+                        <div class="my-auto">
+                            <button
+                                x-bind:class="showContinueButton ? 'opacity-100' : 'opacity-0'"
+                                x-bind:disabled="!showContinueButton" 
+                                x-on:click="$dispatch('next-round')"
+                                class="transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600 w-full m-auto py-2 px-2 md:px-4">CONT</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
         <!-- Textbox -->
-        <div id="textbox" class="absolute w-full bottom-20 flex"  x-bind:class="currentScreen != 'intro' && currentScreen != 'routes' && gameStarted ? 'opacity-100' : 'opacity-0'">
+        <div id="textbox" class="absolute w-full bottom-24 flex"  x-bind:class="currentScreen != 'intro' && currentScreen != 'routes' && gameStarted && !hideTextBox ? 'opacity-100' : 'opacity-0'">
             <div class="m-auto h-[25vh] w-11/12 max-w-screen-md rounded bg-gray-600 p-2 flex">
                 <div class="w-full h-full bg-black flex p-2">
-                    <p class="text-lg md:text-2xl xl:text-3xl" x-text="textboxDisplayText"></p>
+                    <p class="text-lg md:text-2xl 2xl:text-3xl" x-text="textboxDisplayText"></p>
                 </div>
             </div>
         </div>
@@ -131,7 +151,7 @@
             x-on:create-routes.window="createRoutes()"
         >
             <div class="flex flex-col m-auto w-full relative overflow-hidden">
-                <div class="flex flex-col md:flex-row mx-auto md:my-auto gap-2 md:gap-8">
+                <div class="flex flex-col md:flex-row mx-auto md:my-auto gap-0 md:gap-8">
                     <template x-for="route in currentRoutes">
                         <button 
                             class="flex flex-col gap-4 lg:hover:scale-105 transition ease-in-out duration-200 p-2"
@@ -152,14 +172,72 @@
             x-data="screenEvent"
             x-bind:class="currentScreen == 'event' ? 'scene-active' : 'scene-inactive'"
             x-on:create-event.window="createEvent()"
+            x-on:event-show-buttons="showOptionButtons = true;"
         >
             <div class="w-11/12 mx-auto h-screen flex flex-col gap-8">
                 <div class="flex flex-col mx-auto gap-6 mt-10 md:mt-20 lg:mt-10">
                     <img x-bind:src="currentEvent.image" class="w-11/12 max-w-[200px] md:max-w-[250px] 2xl:max-w-[400px] m-auto rounded">
                     <h4 x-text="currentEvent.name" class="text-white text-2xl md:text-3xl 2xl:text-6xl m-auto"></h4>
                 </div>
+                <div class="grid grid-cols-2 gap-2 md:gap-4 mx-auto w-full max-w-screen-md z-50">
+                    <template x-for="(option, index) in currentEvent.options">
+                        <button
+                            x-text="option.name"
+                            x-on:click="showOptionButtons = false; console.log(showOptionButtons); option.result(); showContinueButton = true;"
+                            class="transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600 w-full m-auto p-2"
+                            x-bind:class="showOptionButtons ? 'opacity-100' : 'opacity-0'"
+                            x-bind:class="`delay-${index*100}`"
+                        >
+                        </button>
+                    </template>
+                </div>
             </div>
         </div>
+        <!-- !Event Scene -->
+
+        <!-- Combat Scene -->
+        <div
+            class="scene"
+            x-data="screenCombat"
+            x-bind:class="currentScreen == 'combat' ? 'scene-active' : 'scene-inactive'"
+        >
+            <template x-if="currentEnemy">
+                <div class="w-11/12 mx-auto h-screen flex flex-col gap-8 relative">
+                    <div class="flex flex-col mx-auto gap-6 mt-10 md:mt-20 lg:mt-10">
+                        <div class="w-11/12 max-w-[200px] md:max-w-[250px] 2xl:max-w-[400px] m-auto rounded-sm h-6 flex relative border-2 border-red-600 p-0.5 overflow-hidden">
+                            <div class="bg-red-600 h-4 my-auto transition ease-in-out rounded-sm w-full" x-bind:style="{ transform: `translate(${currentEnemy ? Math.min(currentEnemy.currentHP/currentEnemy.maxHP*100 - 100, 0) : 0}%, 0)` }">
+                                
+                            </div>
+                        </div>
+                        <img x-bind:src="currentEnemy.image" class="w-11/12 max-w-[200px] md:max-w-[250px] 2xl:max-w-[400px] m-auto rounded">
+                        <h4 x-text="currentEnemy.name" class="text-white text-2xl md:text-3xl 2xl:text-6xl m-auto"></h4>
+                    </div>
+                    <div class="flex w-full z-40 absolute bottom-40">
+                        <div class="flex gap-8 mx-auto w-11/12 max-w-screen-sm transition ease-in-out duration-100"
+                            x-bind:class="showCombatButtons ? 'opacity-100' : 'opacity-0'"
+                        >
+                            <button 
+                                x-on:click="combatRound('attack')"
+                                x-bind:disabled="!showCombatButtons" 
+                                class="flex flex-col gap-2 p-4 m-auto aspect-square text-center transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600"
+                            >
+                                <img src="/static/img/icons/attack.png" class="m-auto w-1/2">
+                                <span class="text-white text-2xl m-auto text-center">Attack</span>
+                            </button>
+                            <button 
+                                x-on:click="combatRound('run')"
+                                x-bind:disabled="!showCombatButtons" 
+                                class="flex flex-col gap-2 p-4 m-auto aspect-square text-center transition rounded duration-100 ease-in bg-gray-600 text-white custom-font lg:hover:scale-105 lg:hover:bg-red-600"
+                            >
+                                <img src="/static/img/icons/run.png" class="m-auto w-1/2">
+                                <span class="text-white text-2xl m-auto text-center">Run</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </div>
+        <!-- !Combat Scene -->
 
         <!--        -->
         <!-- MODALS -->
@@ -240,6 +318,78 @@
                 </div>
             </div>
         </dialog>
+        <!-- !Credits Modal -->
+
+        <!-- Player Modal -->
+        <template x-if="player">
+            <dialog class="w-11/12 max-w-screen-md rounded-lg bg-zinc-900" x-ref="modalPlayer">
+                <div class="flex text-white">
+                    <div class="flex flex-col px-8 py-6 w-full h-full gap-2 md:gap-3">
+                        <div class="flex flex-row justify-between w-full">
+                            <h4 class="bold text-2xl md:text-4xl text-red-600">Player</h4>
+                            <button x-on:click="$refs.modalPlayer.close()" class="opacity-50 lg:hover:opacity-100">
+                                <span class="custom-font bold text-2xl md:text-4xl opacity-50 lg:hover:opacity-100 transition ease-in-out duration-100">
+                                    X
+                                </span>
+                            </button>
+                        </div>
+                        <hr>
+                        <div class="max-h-[75vh] md:max-h-[55vh] mb-4">
+                            <div class="flex flex-col gap-4 lg:grid lg:grid-cols-2">
+                                <div class="flex flex-col gap-4">
+                                    <img class="w-11/12 max-w-[200px] md:max-w-[250px] mx-auto rounded" src="/static/img/player.jpg">
+                                    <h3 x-text="player.name" class="m-auto text-3xl text-center"></h3>
+                                </div>
+                                <hr class="lg:hidden">
+                                <div class="grid grid-cols-2 gap-x-4 md:gap-x-8 gap-y-2 mx-auto w-full max-w-[400px]">
+                                    <div class="col-span-2 m-auto text-lg md:text-2xl">
+                                        <span x-text="`HP: ${player.stats.currentHP}/${player.stats.maxHP}`" class="custom-font text-white text-center"></span>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>STR</p>
+                                        <p x-text="player.stats.strength"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>INT</p>
+                                        <p x-text="player.stats.intelligence"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>DEX</p>
+                                        <p x-text="player.stats.dexterity"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>WIS</p>
+                                        <p x-text="player.stats.wisdom"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>CON</p>
+                                        <p x-text="player.stats.constitution"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>CHA</p>
+                                        <p x-text="player.stats.strength"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>SAN</p>
+                                        <p x-text="player.stats.sanity"></p>
+                                    </div>
+                                    <div class="flex w-full justify-between text-lg md:text-2xl">
+                                        <p>LCK</p>
+                                        <p x-text="player.stats.luck"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="w-full flex flex-row justify-between m-auto">
+                            <div></div>
+                            <button x-on:click="$refs.modalPlayer.close()" class="custom-font text-2xl text-white opacity-75 lg:hover:opacity-100 lg:hover:scale-105 lg:hover:text-red-600 hover-text-shadow transition ease-in-out duration-200">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </dialog>
+        </template>
+        
 
         <!-- Data Scripts -->
         <script src="{{ url_for('static', filename='js/game/gameState.js') }}"></script>
@@ -256,6 +406,7 @@
         <script src="{{ url_for('static', filename='js/game/screens/screenIntro.js') }}"></script>
         <script src="{{ url_for('static', filename='js/game/screens/screenRoutes.js') }}"></script>
         <script src="{{ url_for('static', filename='js/game/screens/screenEvent.js') }}"></script>
+        <script src="{{ url_for('static', filename='js/game/screens/screenCombat.js') }}"></script>
 
         <!-- Fog Script -->
         <script>

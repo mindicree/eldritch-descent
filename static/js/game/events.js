@@ -16,6 +16,7 @@ let events = [
                     // find a monster, get hurt
                     // hit by a trap
                     // instant death
+                    printToTextBox('Yo')
                 }
             },
             {
@@ -24,6 +25,7 @@ let events = [
                     // nothing happens
                     // hit a trap
                     // get snagged anyway
+                    printToTextBox('Yo')
                 }
             }
         ]
@@ -40,6 +42,7 @@ let events = [
                     // a blessing of sorts
                     // a trap was set
                     // stricken down by god and die
+                    printToTextBox('Yo')
                 }
             },
             {
@@ -49,6 +52,7 @@ let events = [
                     // nothing happens (it was pain)
                     // a trap was set
                     // stricken down by god and die
+                    printToTextBox('Yo')
                 }
             },
             {
@@ -56,12 +60,14 @@ let events = [
                 result: () => {
                     // heal a bit
                     // be blessed in a stat
+                    printToTextBox('Yo')
                 }
             },
             {
                 name: "Leave",
                 result: () => {
                     // nothing happens
+                    printToTextBox('Yo')
                 }
             }
         ]
@@ -77,12 +83,14 @@ let events = [
                     // nothing happens (very refreshing)
                     // heal
                     // poison
+                    printToTextBox('Yo')
                 }
             },
             {
                 name: "Leave",
                 result: () => {
                     // nothing happens
+                    printToTextBox('Yo')
                 }
             }
         ]
@@ -90,7 +98,7 @@ let events = [
     {
         name: "Mhothrhu's Dressing Room",
         image: "/static/img/events/stone-fountain.jpg",
-        textbox: "Fashion and jewels are luxuries seldom afforded by the exploiters of this world, and those who exploit the exploiters. Despite this, the innocence behind a young mind's intrigue is far from evil.",
+        textbox: "Fashion and jewels are luxuries only afforded by the exploiters of this world, and those who exploit the exploiters. Despite this, the innocence behind a young mind's intrigue is far from evil.",
         options: [
             {
                 name: "Raid the room",
@@ -98,14 +106,24 @@ let events = [
                     // get things
                     // get hit with a trap
                     // get found out and hit
+                    printToTextBox('Yo')
                 }
             },
             {
                 name: "Leave",
                 result: () => {
                     // nothing
+                    printToTextBox('Yo')
                 }
             }
         ]
     }
 ]
+
+// puddle of acid/puke
+
+// choosing between two levers
+
+// oh no, the lights went out
+
+// 
