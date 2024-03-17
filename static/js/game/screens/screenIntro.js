@@ -15,9 +15,9 @@ document.addEventListener('alpine:init', () => {
             for (let i = 0; i < this.fullText.length; i++) {
                 setTimeout(() => {
                     this.displayText = this.fullText.substring(0, i+1)
-                }, 5 * i)
+                }, 20 * i)
             }
-            setTimeout(() => { this.showButton = true }, 5 * this.fullText.length + 100)
+            setTimeout(() => { this.showButton = true }, 20 * this.fullText.length + 100)
         }
     }))
 })
